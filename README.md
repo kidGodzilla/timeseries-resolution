@@ -59,10 +59,20 @@ Data outside of expected ranges is also "cleaned up" (removed), since we expect 
 
 The result is four sets of data based on a continuous stream of measurements over time, which can be rendered as a chart containing:
 
-* The latest data (the last 20 datapoints)
-* Hourly data (20 hours)
-* Daily data (20 hours)
-* Monthly data (last 20 datapoints)
+* The latest data (the last 24 hours of data)
+* Hourly data (48 hours)
+* Daily data (32 days)
+* Monthly data (no cleanup)
+
+### Last n helper
+
+We suggest pulling the last 20 datapoints from each before rendering a chart, but you do you :)
+
+A helper for that has been included. You can just use your favorite charting library to render:
+
+```
+render(last(o.timeseries.all, 20))
+```
 
 ## Advanced usage
 
