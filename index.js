@@ -246,6 +246,7 @@ function processTimeseriesData (o) {
 }
 
 module.exports = {
+    initializeTimeseriesData: initializeTimeseriesData,
     processTimeseriesData: processTimeseriesData,
     formatTimeseriesData: formatTimeseriesData,
     fixObjectValueTypes: fixObjectValueTypes,
