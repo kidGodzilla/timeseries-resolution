@@ -24,6 +24,22 @@ function last (n, a) {
     return a.slice(Math.max(a.length - n, 0));
 }
 
+// Flat object to array by property value (simplistic)
+function obj2arr (o) {
+    let a = [];
+
+    for (let k in o) {
+        if (o.hasOwnProperty(k)) a.push(o[k]);
+    }
+
+    return a;
+}
+
+// Used to filter unique arrays
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
 /**
  * Change data resolution
  */
@@ -63,7 +79,7 @@ function formatTimeseriesData (d, r, m) {
             outs = {};
         }
 
-        // Accumulate (SUM) / Average / Count / Min / Max
+        // Accumulate (SUM) / Average / Count / Min / Max / Distributions
         for (let k in item) {
             if (!item.hasOwnProperty(k)) continue;
 
@@ -71,23 +87,64 @@ function formatTimeseriesData (d, r, m) {
 
             if (k === 'ts') continue;
 
-            if (m[k] === 'sum') {
-                // Aggregate values (SUM)
-                if (!outs[k]) outs[k] = val;
-                else outs[k] += val;
+            if (typeof val === 'number') {
+                if (m[k] === 'sum') {
+                    // Aggregate values (SUM)
+                    if (!outs[k]) outs[k] = val;
+                    else outs[k] += val;
 
-                // Todo: implement min, max, & count
+                } else if (m[k] === 'min') {
+                    outs[k] = Math.min(outs[k], val);
 
-            } else {
-                // Average
-                if (!counts[k]) counts[k] = 0;
-                if (!outs[k]) outs[k] = val;
-                else outs[k] = ((outs[k] * counts[k]) + val) / ++counts[k];
+                } else if (m[k] === 'max') {
+                    outs[k] = Math.max(outs[k], val);
+
+                } else {
+                    // Average (Default operation for numbers)
+                    if (!counts[k]) counts[k] = 0;
+                    if (!outs[k]) outs[k] = val;
+                    else outs[k] = ((outs[k] * counts[k]) + val) / ++counts[k];
+                }
+
+            } else if (m[k] === 'count') {
+                // Todo: I'm not sure how this would work yet, it might just be SUM all over again without a where clause
+
+
+            } else if (m[k] === 'unique') {
+                // Count/list unique distribution values
+                outs[k].push(val);
+                outs[k] = outs[k].filter(onlyUnique);
+
+            } else if (Array.isArray(val)) {
+                // Merge arrays (unique)
+                outs[k] = val.concat(outs[k] || []);
+                outs[k] = outs[k].filter(onlyUnique);
+
+            } else if (typeof val === 'string' || (m[k] === 'dist' && typeof val !== 'object')) {
+                // Distribution (strings to object)
+                if (typeof val !== 'string') val += "";
+
+                if (!outs[k]) outs[k] = {};
+                if (!outs[k][val]) outs[k][val] = 0;
+                outs[k][val]++;
+
+            } else if (typeof val === 'object') {
+                // Distribution merging (merge objects by summing distribution counts)
+                // to sum two distributions when aggregating
+                for (let l in val) {
+                    if (!val.hasOwnProperty(l)) continue;
+
+                    if (!outs[k]) outs[k] = {};
+                    if (!outs[k][l]) outs[k][l] = val[l];
+                    else outs[k][l] += val[l];
+                }
             }
 
-            // Max 2 decimal place precision
-            let b = outs[k].toFixed(2);
-            if (b.length < (outs[k] + '').length) outs[k] = parseFloat(b);
+            if (typeof outs[k] === 'number') {
+                // Max 2 decimal place precision
+                let b = outs[k].toFixed(2);
+                if (b.length < (outs[k] + '').length) outs[k] = parseFloat(b);
+            }
         }
 
         outs.ts = Math.floor(groupTs / r) * r; // Flatten timestamp by resolution
@@ -95,12 +152,7 @@ function formatTimeseriesData (d, r, m) {
         all[groupTs] = outs;
     });
 
-    let output = [];
-
-    for (let k in all) {
-        if (!all.hasOwnProperty(k)) continue;
-        output.push(all[k]);
-    }
+    let output = obj2arr(all);
 
     return output;
 }
@@ -143,26 +195,14 @@ function processTimeseriesData (o) {
 
     // hourlyData.pop(); // Try not popping so we get results faster. Also, if we always pop, dailyAggregates will never exceed 23 hours of data.
 
-    let hourlyDataFromAggregate = [];
-
-    for (let k in o.timeseries.aggregates.hourly) {
-        if (!o.timeseries.aggregates.hourly.hasOwnProperty(k)) continue;
-
-        hourlyDataFromAggregate.push(o.timeseries.aggregates.hourly[k])
-    }
+    let hourlyDataFromAggregate = obj2arr(o.timeseries.aggregates.hourly);
 
     let dailyData = formatTimeseriesData(hourlyDataFromAggregate, (24 * 60 * 60 * 1000));
 
     // dailyData.pop(); Do not pop dailyData, since we only collect 24h & each component is complete
 
     // Get daily data from previous aggregates, not volatile data
-    let dailyDataFromAggregate = [];
-
-    for (let k in o.timeseries.aggregates.daily) {
-        if (!o.timeseries.aggregates.daily.hasOwnProperty(k)) continue;
-
-        dailyDataFromAggregate.push(o.timeseries.aggregates.daily[k])
-    }
+    let dailyDataFromAggregate = obj2arr(o.timeseries.aggregates.daily);
 
     let monthlyData = formatTimeseriesData(dailyDataFromAggregate, Math.floor(30.43685 * 24 * 60 * 60 * 1000));
 
@@ -209,5 +249,6 @@ module.exports = {
     processTimeseriesData: processTimeseriesData,
     formatTimeseriesData: formatTimeseriesData,
     fixObjectValueTypes: fixObjectValueTypes,
+    obj2arr: obj2arr,
     last: last
 }
