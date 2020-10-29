@@ -7,11 +7,29 @@ For example, buttons to switch between latest data, hourly data, daily data, and
 
 This helper library also comes with a useful set of presets for formatting timeseries data into hourly, daily, and monthly averages (which should work for most trivial datasets, if your goal is just to make useful line charts). 
 
+## Installation
+
+Run `npm i -s timeseries-resolution` then require or import:
+
+```js
+let { initializeTimeseriesData, processTimeseriesData } = require('timeseries-resolution')
+```
+
 ## Basic Usage
 
 ### Scaffolding a timeseries object inside a document
 
 First, we scaffold a new `timeseries` object inside of our document, to contain our timeseries data.
+
+We do that with:
+
+```js
+// Initialize an Existing object to handle timeseries data:
+object = initializeTimeseriesData(object);
+
+// or create a New object:
+let object = initializeTimeseriesData({});
+```
 
 By default it looks like this:
 
