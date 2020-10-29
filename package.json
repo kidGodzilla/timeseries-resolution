@@ -1,6 +1,6 @@
 {
   "name": "timeseries-resolution",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A tiny helper for converting timeseries data between arbitrary resolutions (i.e. from an hourly interval to daily, or monthly)",
   "main": "index.js",
   "scripts": {
