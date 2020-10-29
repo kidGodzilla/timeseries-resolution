@@ -1,0 +1,24 @@
+{
+  "name": "timeseries-resolution",
+  "version": "0.2.7",
+  "description": "A tiny helper for converting timeseries data between arbitrary resolutions (i.e. from an hourly interval to daily, or monthly)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kidGodzilla/timeseries-resolution.git"
+  },
+  "keywords": [
+    "timeseries",
+    "resolution",
+    "utility"
+  ],
+  "author": "James Futhey <futhey@gmail.com> (http://jamesfuthey.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kidGodzilla/timeseries-resolution/issues"
+  },
+  "homepage": "https://github.com/kidGodzilla/timeseries-resolution#readme"
+}
